@@ -1,0 +1,161 @@
+﻿<Window x:Class="WpfApplication1.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:WpfApplication1"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="900" Background="#FF2D2D30">
+
+    <Window.InputBindings>
+        <KeyBinding Command="{Binding UndoCommand}" Key="Z" Modifiers="Control" />
+        <KeyBinding Command="{Binding RedoCommand}" Key="Y" Modifiers="Control" />
+    </Window.InputBindings>
+	
+    <Window.Resources>
+
+        <!--ContextMenu-->
+        <ContextMenu x:Key="nodeControlContextMenu">
+            <MenuItem Header="削除" Click="NodeMenuItem_Click"/>
+        </ContextMenu>
+
+        <ContextMenu x:Key="connectorControlContextMenu">
+            <MenuItem Header="リンク解除" Click="ConnectorMenuItem_Click"/>
+        </ContextMenu>
+
+
+        <!--ConnectorControl style override-->
+        <Style TargetType="{x:Type local:ConnectorControl}">
+            <Setter Property="ContextMenu" Value="{StaticResource connectorControlContextMenu}"/>
+
+            <!--<Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type local:ConnectorControl}">
+                        <Grid>
+                            <Rectangle Name="connectorRing" Width="10" Height="10" Stroke="White" StrokeThickness="2" Fill="#FF171717"/>
+                            <Rectangle Name="hoverRect" Width="14" Height="14"></Rectangle>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsConnected" Value="True">
+                                <Setter Property="Fill" TargetName="connectorRing" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Fill" TargetName="hoverRect" Value="#59FFFFFF"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+			</Setter>-->
+        </Style>
+
+        <!--NodeConnectorViewModel's template-->
+        <DataTemplate DataType="{x:Type local:NodeConnectorViewModel}">
+            <ContentControl Name="content"></ContentControl>
+
+            <DataTemplate.Triggers>
+                <!--Input-->
+                <DataTrigger Binding="{Binding Type}" Value="Input">
+                    <Setter TargetName="content" Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid HorizontalAlignment="Left">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="10"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <local:ConnectorControl Grid.Column="0"></local:ConnectorControl>
+                                    <Label Grid.Column="1" Content="{Binding Name}" Foreground="White" Padding="0" Margin="5,3,0,3" FontSize="11"/>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+
+                <!--Output-->
+                <DataTrigger Binding="{Binding Type}" Value="Output">
+                    <Setter TargetName="content" Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate>
+                                <Grid HorizontalAlignment="Right">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="10"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Label Grid.Column="0" Content="{Binding Name}" Foreground="White" Padding="0" Margin="0,3,5,3" FontSize="11"/>
+                                    <local:ConnectorControl Grid.Column="1"></local:ConnectorControl>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+
+        <!--NodeListItem position binding to NodeViewModel-->
+        <Style TargetType="{x:Type local:NodeListItem}">
+            <Setter Property="X" Value="{Binding Path=X, Mode=TwoWay}" />
+            <Setter Property="Y" Value="{Binding Path=Y, Mode=TwoWay}" />
+			<Setter Property="IsSelected" Value="{Binding IsSelected}" />
+        </Style>
+
+        <!--NodeControl's Template-->
+        <DataTemplate DataType="{x:Type local:NodeViewModel}">
+            <!--
+			データタイプで指定するのてTemplateにはnullを設定している
+			指定しないとデフォルトテンプレートが使用される
+			-->
+            <local:NodeControl 
+				Title="{Binding Name}" 
+				Inputs="{Binding Args}" 
+				Outputs="{Binding Outputs}"
+				InputItemTemplate="{x:Null}"
+				OutputItemTemplate="{x:Null}"
+				ContextMenu="{StaticResource nodeControlContextMenu}"/>
+        </DataTemplate>
+
+        <!--LinkControl's Template-->
+        <DataTemplate DataType="{x:Type local:LinkViewModel}">
+            <local:LinkControl Start="{Binding Start}" End="{Binding End}" Stroke="White" StrokeThickness="2"/>
+        </DataTemplate>
+
+    </Window.Resources>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top" Height="20" Background="#FF2D2D30">
+            <MenuItem Header="ファイル" Foreground="#FFE4E4E4"/>
+        </Menu>
+
+        <StatusBar Height="25" DockPanel.Dock="Bottom" Background="#FF2D2D30"/>
+
+		<Grid DockPanel.Dock="Top" Margin="5 0 5 0">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="3*"></ColumnDefinition>
+				<ColumnDefinition Width="1*"></ColumnDefinition>
+			</Grid.ColumnDefinitions>
+			
+			<local:NodeEditControl x:Name="nodeEditControl"
+								   Grid.Column="0"
+								   Margin="0 0 6 0"
+								   BorderBrush="#FF535353"
+								   BorderThickness="1"
+								   DataContext="{Binding NodeEditViewModel}"
+								   Nodes="{Binding Nodes}"
+								   Links="{Binding Links}"
+								   ConnectionDragStarted="NodeEditControl_ConnectionDragStarted"
+								   ConnectionDragging="NodeEditControl_ConnectionDragging"
+								   ConnectionDragCompleted="NodeEditControl_ConnectionDragCompleted"
+								   DragOver="NodeEditControl_DragOver"
+								   Drop="NodeEditControl_Drop"
+								   AllowDrop="True"
+								   />
+			
+			<GridSplitter Grid.Column="0" Width="5" Background="#FF2D2D30"/>
+			
+            <local:PaletteUserControl Grid.Column="1" 
+									  DataContext="{Binding PaletteViewModel}"
+									  BorderBrush="#FF535353"
+									  BorderThickness="1"
+									  />
+		</Grid>
+    </DockPanel>
+</Window>

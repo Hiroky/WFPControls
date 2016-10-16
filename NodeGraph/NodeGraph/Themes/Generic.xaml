@@ -1,0 +1,210 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:WpfApplication1">
+
+	<!--
+	=================================================
+		ConnectorControl Template
+	================================================== 
+	-->
+	<!--Connector visual styles-->
+	<Style TargetType="{x:Type local:ConnectorControl}">
+		<!--Binding properties-->
+		<Setter Property="Position" Value="{Binding Position, Mode=OneWayToSource}" />
+		<Setter Property="IsConnected" Value="{Binding IsConnected, UpdateSourceTrigger=PropertyChanged}" />
+		<Setter Property="ParentEditControl" 
+					Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Canvas}}, Path=.}"/>
+		<Setter Property="ParentNodeControl" 
+					Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}, Path=.}"/>
+
+		<!-- The visual template. -->
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="{x:Type local:ConnectorControl}">
+					<Grid>
+						<Ellipse Name="connectorRing" Width="10" Height="10" Stroke="White" StrokeThickness="2" Fill="#FF171717"/>
+						<Rectangle Name="hoverRect" Width="14" Height="14"></Rectangle>
+					</Grid>
+					<!--Triggers-->
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsConnected" Value="True">
+							<Setter Property="Fill" TargetName="connectorRing" Value="White"/>
+						</Trigger>
+						<Trigger Property="IsMouseOver" Value="True">
+							<Setter Property="Fill" TargetName="hoverRect" Value="#59FFFFFF"/>
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
+	</Style>
+
+	
+	<!--
+	=================================================
+		NodeControl Template
+	================================================== 
+	-->
+	<DataTemplate x:Key="ConnectorTemplate">
+		<local:ConnectorControl/>
+	</DataTemplate>
+	
+	<Style TargetType="{x:Type local:NodeControl}">
+        <Setter Property="Canvas.Left" Value="{Binding Path=X, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeListItem}}, Mode=TwoWay}" />
+        <Setter Property="Canvas.Top" Value="{Binding Path=Y, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeListItem}}, Mode=TwoWay}" />
+        <Setter Property="InputItemTemplate" Value="{StaticResource ConnectorTemplate}" />
+        <Setter Property="OutputItemTemplate" Value="{StaticResource ConnectorTemplate}" />
+		<Setter Property="ParentEditControl" 
+					Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Canvas}}, Path=.}"/>
+
+		<Setter Property="Template">
+            <Setter.Value>
+				<ControlTemplate TargetType="{x:Type local:NodeControl}">
+					<Grid>
+						<DockPanel Margin="3">
+							<Grid DockPanel.Dock="Top" Height="28" VerticalAlignment="Top">
+								<Border Background="#FF2A5B30" CornerRadius="5, 5, 0, 0" BorderThickness="1,1,1,0" BorderBrush="Black"></Border>
+								<Label Content="{Binding Title, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}" Foreground="#FFF0F0F0" FontWeight="Bold" FontSize="13.333" >
+									<Label.Effect>
+										<DropShadowEffect BlurRadius="1" ShadowDepth="2" Direction="318"/>
+									</Label.Effect>
+								</Label>
+							</Grid>
+
+							<Grid>
+								<Border CornerRadius="0,0,5,5" BorderThickness="1,0,1,1" BorderBrush="Black" Background="#A5171717">
+									<!--<Grid Margin="5">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="Auto"/>
+											<ColumnDefinition Width="Auto"/>
+										</Grid.ColumnDefinitions>
+										<ItemsControl Grid.Column="0" ItemTemplate="{Binding InputItemTemplate, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}" 
+																  ItemsSource="{Binding Inputs, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}" Margin="2" />
+										<ItemsControl Grid.Column="1" ItemTemplate="{Binding OutputItemTemplate, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}"
+																  ItemsSource="{Binding Outputs, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}" Margin="10,2,2,2" />
+									</Grid>-->
+                                    <DockPanel Margin="5">
+                                        <ItemsControl DockPanel.Dock="Left" ItemTemplate="{Binding InputItemTemplate, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}" 
+																  ItemsSource="{Binding Inputs, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}" Margin="2" />
+                                        <ItemsControl DockPanel.Dock="Right" ItemTemplate="{Binding OutputItemTemplate, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}"
+																  ItemsSource="{Binding Outputs, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type local:NodeControl}}}" Margin="10,2,2,2" />
+                                    </DockPanel>
+								</Border>
+							</Grid>
+						</DockPanel>
+					</Grid>
+				</ControlTemplate>
+			</Setter.Value>
+        </Setter>
+    </Style>
+
+
+    <!--
+	=================================================
+		NodeListControl Template
+	================================================== 
+	-->
+    <Style TargetType="{x:Type local:NodeListItem}">
+        <Setter Property="Canvas.Left" Value="{Binding Path=X, RelativeSource={RelativeSource Self}, Mode=TwoWay}" />
+        <Setter Property="Canvas.Top" Value="{Binding Path=Y, RelativeSource={RelativeSource Self}, Mode=TwoWay}" />
+
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:NodeListItem}">
+                    <Grid>
+                        <Border Name="selectedBorder" CornerRadius="3" BorderThickness="4" BorderBrush="#FFEAB321">
+                        </Border>
+                        <ContentPresenter/>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsSelected" Value="False">
+                            <Setter Property="Visibility" TargetName="selectedBorder" Value="Hidden"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+
+    <!--
+	=================================================
+		NodeEditControl Template
+	================================================== 
+	-->
+	<!--Grid brush for NodeEditControl-->
+    <DrawingBrush x:Key="GridTile" Viewport="0,0,16,16" ViewportUnits="Absolute" TileMode="Tile">
+        <DrawingBrush.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing>
+                    <GeometryDrawing.Geometry>
+                        <PathGeometry>
+                            <PathFigure StartPoint="0,0">
+                                <LineSegment Point="0,16"/>
+                                <LineSegment Point="16,16"/>
+                            </PathFigure>
+                        </PathGeometry>
+                    </GeometryDrawing.Geometry>
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#FF424242" Thickness="0.5"></Pen>
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingBrush.Drawing>
+    </DrawingBrush>
+
+    <Style TargetType="{x:Type local:NodeEditControl}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type local:NodeEditControl}">
+                    <Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+						<Grid Background="#FF262626" ClipToBounds="True">
+							<Border Background="{StaticResource GridTile}"/>
+
+							<Canvas Name="PART_Canvas">
+								<local:NodeListControl x:Name="PART_NodeList" ItemsSource="{TemplateBinding Nodes}" SelectionMode="Extended" >
+									<ListBox.Template>
+										<ControlTemplate TargetType="ListBox">
+											<Canvas IsItemsHost="True"/>
+										</ControlTemplate>
+									</ListBox.Template>
+								</local:NodeListControl>
+
+								<ItemsControl x:Name="PART_LinkList" ItemsSource="{TemplateBinding Links}" Panel.ZIndex="-5">
+									<ItemsControl.ItemsPanel>
+										<ItemsPanelTemplate>
+											<Canvas/>
+										</ItemsPanelTemplate>
+									</ItemsControl.ItemsPanel>
+								</ItemsControl>
+								
+								<!--Canvas for mouse drag selection-->
+								<!--<Border Name="PART_SelectionRect" Visibility="Collapsed" Background="LightBlue" BorderBrush="Blue" Opacity="0.5"></Border>-->
+								<Border Name="PART_SelectionRect" Visibility="Collapsed" BorderThickness="1">
+									<Border.BorderBrush>
+										<VisualBrush>
+											<VisualBrush.Visual>
+												<Rectangle StrokeDashArray="7 4"
+														   Stroke="White"
+														   StrokeThickness="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=BorderThickness.Left}"
+														   Width="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualWidth}"
+														   Height="{Binding RelativeSource={RelativeSource AncestorType={x:Type Border}}, Path=ActualHeight}"/>
+											</VisualBrush.Visual>
+										</VisualBrush>
+									</Border.BorderBrush>
+								</Border>
+							</Canvas>
+						</Grid>
+					</Border>
+
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsScrollDragging" Value="true">
+							<Setter Property="Cursor" Value="SizeAll"/>
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>
